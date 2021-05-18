@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=6.4.1" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=6.4.1">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=6.4.1">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=6.4.1">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=6.4.1" color="#222">
+
+
+
+
+
+
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '6.4.1',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="如何使用curl命令提供了-w参数来输出请求的各个阶段耗时情况。123456789#cat curl-format.txt    time_namelookup:  %&amp;#123;time_namelookup&amp;#125;\n       time_connect:  %&amp;#123;time_connect&amp;#125;\n    time_appconnect:  %&amp;#123;time_appc">
+<meta name="keywords" content="Linux,curl">
+<meta property="og:type" content="article">
+<meta property="og:title" content="curl查看各阶段耗时">
+<meta property="og:url" content="http://yoursite.com/2018/10/01/curl获取请求各阶段时间/index.html">
+<meta property="og:site_name" content="Biglee的博客">
+<meta property="og:description" content="如何使用curl命令提供了-w参数来输出请求的各个阶段耗时情况。123456789#cat curl-format.txt    time_namelookup:  %&amp;#123;time_namelookup&amp;#125;\n       time_connect:  %&amp;#123;time_connect&amp;#125;\n    time_appconnect:  %&amp;#123;time_appc">
+<meta property="og:locale" content="default">
+<meta property="og:updated_time" content="2018-09-03T12:17:46.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="curl查看各阶段耗时">
+<meta name="twitter:description" content="如何使用curl命令提供了-w参数来输出请求的各个阶段耗时情况。123456789#cat curl-format.txt    time_namelookup:  %&amp;#123;time_namelookup&amp;#125;\n       time_connect:  %&amp;#123;time_connect&amp;#125;\n    time_appconnect:  %&amp;#123;time_appc">
+
+
+
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2018/10/01/curl获取请求各阶段时间/"/>
+
+
+
+<script type="text/javascript" id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>curl查看各阶段耗时 | Biglee的博客</title>
+  
+
+
+
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?f14e036d39899b2167e545a3dbf1b03e";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style type="text/css">
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion {
+      .logo-line-before i { left: initial; }
+      .logo-line-after i { right: initial; }
+    }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="default">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Biglee的博客</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="Toggle navigation bar">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-主页">
+    <a href="/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-home"></i> <br />主页</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-关于我">
+    <a href="/about/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-user"></i> <br />关于我</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-标签">
+    <a href="/tags/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />标签</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-目录">
+    <a href="/categories/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-th"></i> <br />目录</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-归档">
+    <a href="/archives/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />归档</a>
+  </li>
+
+      
+      
+    </ul>
+  
+
+  
+
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+            
+
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/10/01/curl获取请求各阶段时间/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Biglee">
+      <meta itemprop="description" content="因为相信，所以看见。">
+      <meta itemprop="image" content="https://res.cloudinary.com/dhecqiqai/image/upload/v1535717784/biglee-top/IMG_1167.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Biglee的博客">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">curl查看各阶段耗时
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+
+              
+                
+              
+
+              <time title="Created: 2018-10-01 19:52:22" itemprop="dateCreated datePublished" datetime="2018-10-01T19:52:22+08:00">2018-10-01</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Edited on</span>
+                
+                <time title="Modified: 2018-09-03 20:17:46" itemprop="dateModified" datetime="2018-09-03T20:17:46+08:00">2018-09-03</time>
+              
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/Linux/" itemprop="url" rel="index"><span itemprop="name">Linux</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="如何使用"><a href="#如何使用" class="headerlink" title="如何使用"></a>如何使用</h2><p>curl命令提供了-w参数来输出请求的各个阶段耗时情况。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">#cat curl-format.txt</span><br><span class="line">    time_namelookup:  %&#123;time_namelookup&#125;\n</span><br><span class="line">       time_connect:  %&#123;time_connect&#125;\n</span><br><span class="line">    time_appconnect:  %&#123;time_appconnect&#125;\n</span><br><span class="line">      time_redirect:  %&#123;time_redirect&#125;\n</span><br><span class="line">   time_pretransfer:  %&#123;time_pretransfer&#125;\n</span><br><span class="line"> time_starttransfer:  %&#123;time_starttransfer&#125;\n</span><br><span class="line">                    ----------\n</span><br><span class="line">         time_total:  %&#123;time_total&#125;\n</span><br></pre></td></tr></table></figure></p>
+<ul>
+<li>time_namelookup: DNS解析时间</li>
+<li>time_connect：tcp建联时间</li>
+<li>time_appconnect：SSL/SSH 等上层协议建立连接的时间，比如 connect/handshake 的时间。注意，即使curl语句中带有-k参数（忽略证书校验），这一项时间仍然存在，因为-k只是忽略证书的校验，本身SSL握手仍然存在。</li>
+<li>time_redirect：从开始到最后一个请求事务的时间</li>
+<li>time_pretransfer：从请求开始到开始传输的时间</li>
+<li>time_total：这次请求花费的全部时间</li>
+</ul>
+<p>下面来看一个例子：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">lizaibin@lizaibindeMacBook-Pro:/tmp$ curl -w &quot;@curl-format.txt&quot; -o /dev/null -s &quot;biglee.top&quot;</span><br><span class="line">    time_namelookup:  4.545886</span><br><span class="line">       time_connect:  4.772797</span><br><span class="line">    time_appconnect:  0.000000</span><br><span class="line">      time_redirect:  0.000000</span><br><span class="line">   time_pretransfer:  4.773164</span><br><span class="line"> time_starttransfer:  5.396703</span><br><span class="line">                    ----------</span><br><span class="line">         time_total:  6.868380</span><br><span class="line">lizaibin@lizaibindeMacBook-Pro:/tmp$ curl -w &quot;@curl-format.txt&quot; -o /dev/null -s &quot;biglee.top&quot;</span><br><span class="line">    time_namelookup:  0.005272</span><br><span class="line">       time_connect:  0.223869</span><br><span class="line">    time_appconnect:  0.000000</span><br><span class="line">      time_redirect:  0.000000</span><br><span class="line">   time_pretransfer:  0.224186</span><br><span class="line"> time_starttransfer:  0.529396</span><br><span class="line">                    ----------</span><br><span class="line">         time_total:  0.837033</span><br><span class="line">lizaibin@lizaibindeMacBook-Pro:/tmp$ ping biglee.top</span><br><span class="line">PING sni.github.map.fastly.net (185.199.109.153): 56 data bytes</span><br><span class="line">64 bytes from 185.199.109.153: icmp_seq=0 ttl=50 time=220.691 ms</span><br><span class="line">64 bytes from 185.199.109.153: icmp_seq=1 ttl=50 time=228.045 ms</span><br><span class="line">64 bytes from 185.199.109.153: icmp_seq=2 ttl=50 time=247.959 ms</span><br><span class="line">64 bytes from 185.199.109.153: icmp_seq=3 ttl=50 time=267.425 ms</span><br></pre></td></tr></table></figure></p>
+<p>两次相同的请求， 因为dns有了缓存，因此第二次请求的DNS时间大幅缩小。另外，tcp建联时间基本等于一个RTT。</p>
+<p>再来看一个https的例子<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">lizaibin@lizaibindeMacBook-Pro:/tmp$ curl -w &quot;@curl-format.txt&quot; -o /dev/null  -s &quot;https://www.163.com&quot;</span><br><span class="line">    time_namelookup:  0.004464</span><br><span class="line">       time_connect:  0.014537</span><br><span class="line">    time_appconnect:  0.053920</span><br><span class="line">      time_redirect:  0.000000</span><br><span class="line">   time_pretransfer:  0.053983</span><br><span class="line"> time_starttransfer:  0.067289</span><br><span class="line">                    ----------</span><br><span class="line">         time_total:  0.142331</span><br><span class="line">lizaibin@lizaibindeMacBook-Pro:/tmp$ curl -w &quot;@curl-format.txt&quot; -o /dev/null -k -s &quot;https://www.163.com&quot;</span><br><span class="line">    time_namelookup:  0.005278</span><br><span class="line">       time_connect:  0.017175</span><br><span class="line">    time_appconnect:  0.064152</span><br><span class="line">      time_redirect:  0.000000</span><br><span class="line">   time_pretransfer:  0.064268</span><br><span class="line"> time_starttransfer:  0.075927</span><br><span class="line">                    ----------</span><br><span class="line">         time_total:  0.148018</span><br></pre></td></tr></table></figure></p>
+<p>第二次带了-k参数，但是time_appconnect并没有消失，因为仍热需要SSL握手，这是我以前一直误会的地方，以为-k就没有SSL时间了。</p>
+<h2 id="几个典型的时间计算"><a href="#几个典型的时间计算" class="headerlink" title="几个典型的时间计算"></a>几个典型的时间计算</h2><ul>
+<li>TCP建联时间：time_connect - time_namelookup</li>
+<li>服务器处理时间： time_starttransfer - time_pretransfer</li>
+<li>内容传输or下载时间：  time_total - time_starttransfer</li>
+<li>SSL时间： time_appconnect - time_connect</li>
+</ul>
+<h2 id="httpstat——一个美化版本"><a href="#httpstat——一个美化版本" class="headerlink" title="httpstat——一个美化版本"></a>httpstat——一个美化版本</h2><p>使用效果如下<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">lizaibin@lizaibindeMacBook-Pro:~/lzbworkspace/blog$ httpstat www.163.com/get</span><br><span class="line">Connected to 115.231.22.125:80 from 30.43.140.87:53017</span><br><span class="line"></span><br><span class="line">HTTP/1.1 302 Moved Temporarily</span><br><span class="line">Date: Mon, 03 Sep 2018 11:47:24 GMT</span><br><span class="line">Server: nginx</span><br><span class="line">Content-Type: text/html</span><br><span class="line">Transfer-Encoding: chunked</span><br><span class="line">Location: http://www.163.com</span><br><span class="line">Expires: Mon, 03 Sep 2018 11:49:24 GMT</span><br><span class="line">Cache-Control: max-age=120</span><br><span class="line">X-Via: 1.1 PSzjwzdx11am82:6 (Cdn Cache Server V2.0), 1.1 PSzjhzdx4ay110:2 (Cdn Cache Server V2.0)</span><br><span class="line">Connection: keep-alive</span><br><span class="line"></span><br><span class="line">Body stored in: /var/folders/7j/j78lgmp11g77x6tmhcbwkv6w0000gp/T/tmphy_7oml3</span><br><span class="line"></span><br><span class="line">  DNS Lookup   TCP Connection   Server Processing   Content Transfer</span><br><span class="line">[    33ms    |       8ms      |       94ms        |        1ms       ]</span><br><span class="line">             |                |                   |                  |</span><br><span class="line">    namelookup:33ms           |                   |                  |</span><br><span class="line">                        connect:41ms              |                  |</span><br><span class="line">                                      starttransfer:135ms            |</span><br><span class="line">                                                                 total:136ms</span><br><span class="line">``` </span><br><span class="line"></span><br><span class="line">httpstat是用python写的一个curl的包装版本，git地址：https://github.com/reorx/httpstat</span><br><span class="line">安装方法</span><br></pre></td></tr></table></figure></p>
+<p>pip install httpstat<br><code>`</code></p>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Linux/" rel="tag"># Linux</a>
+          
+            <a href="/tags/curl/" rel="tag"># curl</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/09/07/LSA分类/" rel="next" title="LSA分类知识">
+                <i class="fa fa-chevron-left"></i> LSA分类知识
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/10/29/刺客信条奥德赛与古希腊历史/" rel="prev" title="刺客信条奥德赛与古希腊历史">
+                刺客信条奥德赛与古希腊历史 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+    <div class="comments" id="comments">
+      <div id="lv-container" data-id="city" data-uid="MTAyMC8zOTQ3NS8xNjAwMg=="></div>
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="https://res.cloudinary.com/dhecqiqai/image/upload/v1535717784/biglee-top/IMG_1167.jpg"
+                alt="Biglee" />
+            
+              <p class="site-author-name" itemprop="name">Biglee</p>
+              <p class="site-description motion-element" itemprop="description">因为相信，所以看见。</p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives">
+                
+                    <span class="site-state-item-count">9</span>
+                    <span class="site-state-item-name">posts</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  <a href="/categories/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">5</span>
+                    <span class="site-state-item-name">categories</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/Tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">11</span>
+                    <span class="site-state-item-name">tags</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+            <div class="links-of-author motion-element">
+              
+                <span class="links-of-author-item">
+                  <a href="https://github.com/hugelee" target="_blank" title="GitHub"><i class="fa fa-fw fa-github"></i>GitHub</a>
+                  
+                </span>
+              
+                <span class="links-of-author-item">
+                  <a href="mailto:lizaibin0304@gmail.com" target="_blank" title="E-Mail"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  
+                </span>
+              
+                <span class="links-of-author-item">
+                  <a href="https://www.zhihu.com/people/li-zai-bin/activities" target="_blank" title="知乎"><i class="fa fa-fw fa-zhihu"></i>知乎</a>
+                  
+                </span>
+              
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#如何使用"><span class="nav-number">1.</span> <span class="nav-text">如何使用</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#几个典型的时间计算"><span class="nav-number">2.</span> <span class="nav-text">几个典型的时间计算</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#httpstat——一个美化版本"><span class="nav-number">3.</span> <span class="nav-text">httpstat——一个美化版本</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js">
+</script>
+<span id="busuanzi_container_site_pv">
+    本站总访问量<span id="busuanzi_value_site_pv"></span>次
+</span>
+<div class="copyright">&copy; 2018.8 – <span itemprop="copyrightYear">2021</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-李在彬"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Biglee</span>
+
+  
+
+  
+</div>
+
+
+
+
+  <div class="powered-by">
+  <i class="fa fa-user-md"></i>
+#  <span id="busuanzi_container_site_uv">
+#  本站访客数:<span id="busuanzi_value_site_uv"></span>
+#  </span>
+  </div>
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> v3.7.1</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme – <a class="theme-link" target="_blank" href="https://theme-next.org">NexT.Gemini</a> v6.4.1</div>
+
+
+
+<div class="theme-info">
+  <div class="powered-by"></div>
+  <span class="post-count">博客全站共7.6k字</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+	
+    
+
+    
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/canvas-nest/canvas-nest.min.js"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=6.4.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=6.4.1"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=6.4.1"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=6.4.1"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=6.4.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=6.4.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=6.4.1"></script>
+
+
+
+  
+
+
+
+  
+    <script type="text/javascript">
+      window.livereOptions = {
+        refer: '2018/10/01/curl获取请求各阶段时间/'
+      };
+      (function(d, s) {
+        var j, e = d.getElementsByTagName(s)[0];
+        if (typeof LivereTower === 'function') { return; }
+        j = d.createElement(s);
+        j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+        j.async = true;
+        e.parentNode.insertBefore(j, e);
+      })(document, 'script');
+    </script>
+  
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+  <script type="text/javascript" src="//cdn.bootcss.com/canvas-nest.js/1.0.0/canvas-nest.min.js"></script>
+  
+</body>
+</html>

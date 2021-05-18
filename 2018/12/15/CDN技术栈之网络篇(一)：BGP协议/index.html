@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=6.4.1" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=6.4.1">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=6.4.1">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=6.4.1">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=6.4.1" color="#222">
+
+
+
+
+
+
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '6.4.1',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="CDN技术栈之网络篇(一)：BGP协议IBGP和EBGP实际应用中，EBGP使用更多，管理距离为20 BGP状态机5种状态，Idel、connect、open sent、open confirm、establish。常见的active状态，是在connect之后，如果与对端建立TCP连接失败的话，会转到active状态，尝试再次连接，这一般发生在对端还没有配置正确的情况下。 BGP十三条选路原则B">
+<meta name="keywords" content="CDN,网络,BGP">
+<meta property="og:type" content="article">
+<meta property="og:title" content="CDN技术栈之网络篇(一)：BGP协议">
+<meta property="og:url" content="http://yoursite.com/2018/12/15/CDN技术栈之网络篇(一)：BGP协议/index.html">
+<meta property="og:site_name" content="Biglee的博客">
+<meta property="og:description" content="CDN技术栈之网络篇(一)：BGP协议IBGP和EBGP实际应用中，EBGP使用更多，管理距离为20 BGP状态机5种状态，Idel、connect、open sent、open confirm、establish。常见的active状态，是在connect之后，如果与对端建立TCP连接失败的话，会转到active状态，尝试再次连接，这一般发生在对端还没有配置正确的情况下。 BGP十三条选路原则B">
+<meta property="og:locale" content="default">
+<meta property="og:updated_time" content="2018-12-15T08:13:21.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="CDN技术栈之网络篇(一)：BGP协议">
+<meta name="twitter:description" content="CDN技术栈之网络篇(一)：BGP协议IBGP和EBGP实际应用中，EBGP使用更多，管理距离为20 BGP状态机5种状态，Idel、connect、open sent、open confirm、establish。常见的active状态，是在connect之后，如果与对端建立TCP连接失败的话，会转到active状态，尝试再次连接，这一般发生在对端还没有配置正确的情况下。 BGP十三条选路原则B">
+
+
+
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2018/12/15/CDN技术栈之网络篇(一)：BGP协议/"/>
+
+
+
+<script type="text/javascript" id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>CDN技术栈之网络篇(一)：BGP协议 | Biglee的博客</title>
+  
+
+
+
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?f14e036d39899b2167e545a3dbf1b03e";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style type="text/css">
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion {
+      .logo-line-before i { left: initial; }
+      .logo-line-after i { right: initial; }
+    }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="default">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Biglee的博客</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="Toggle navigation bar">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-主页">
+    <a href="/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-home"></i> <br />主页</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-关于我">
+    <a href="/about/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-user"></i> <br />关于我</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-标签">
+    <a href="/tags/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />标签</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-目录">
+    <a href="/categories/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-th"></i> <br />目录</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-归档">
+    <a href="/archives/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />归档</a>
+  </li>
+
+      
+      
+    </ul>
+  
+
+  
+
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+            
+
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/15/CDN技术栈之网络篇(一)：BGP协议/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Biglee">
+      <meta itemprop="description" content="因为相信，所以看见。">
+      <meta itemprop="image" content="https://res.cloudinary.com/dhecqiqai/image/upload/v1535717784/biglee-top/IMG_1167.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Biglee的博客">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">CDN技术栈之网络篇(一)：BGP协议
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+
+              
+                
+              
+
+              <time title="Created: 2018-12-15 14:33:22 / Modified: 16:13:21" itemprop="dateCreated datePublished" datetime="2018-12-15T14:33:22+08:00">2018-12-15</time>
+            
+
+            
+              
+
+              
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/网络/" itemprop="url" rel="index"><span itemprop="name">网络</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="CDN技术栈之网络篇-一-：BGP协议"><a href="#CDN技术栈之网络篇-一-：BGP协议" class="headerlink" title="CDN技术栈之网络篇(一)：BGP协议"></a>CDN技术栈之网络篇(一)：BGP协议</h1><h2 id="IBGP和EBGP"><a href="#IBGP和EBGP" class="headerlink" title="IBGP和EBGP"></a>IBGP和EBGP</h2><p>实际应用中，EBGP使用更多，管理距离为20</p>
+<h2 id="BGP状态机"><a href="#BGP状态机" class="headerlink" title="BGP状态机"></a>BGP状态机</h2><p>5种状态，Idel、connect、open sent、open confirm、establish。常见的active状态，是在connect之后，如果与对端建立TCP连接失败的话，会转到active状态，尝试再次连接，这一般发生在对端还没有配置正确的情况下。</p>
+<h2 id="BGP十三条选路原则"><a href="#BGP十三条选路原则" class="headerlink" title="BGP十三条选路原则"></a>BGP十三条选路原则</h2><p>BGP一定会选择出一条最优路径。默认情况下不会负载均衡，相比而言，RIP、EIGRP和OSPF等协议，当出现一模一样的路由条目（管理距离一样、度量值一样）此时就会负载均衡。但是BGP一定会选择其中一条。<br><strong>BGP选路策略中可以人为控制的是前6条，实际用的比较多的是第4条</strong></p>
+<p>A<--->B<--->C<br>B收到来自A和C的相同地址，B会如何选择？（ABC可能是IBGP也可能是EBGP）</---></---></p>
+<ol>
+<li>权重值（Weight）当收到多条去往同一个地址的路由时，可以通过将其中一条路由的Weight调大，会优选Weight值大的。只能在B本地指定，A和C自己不能指定。</li>
+<li>本地优先级Local Perference 默认的LocPre是100，本地优先级越大越好。<ul>
+<li>在IBGP环境下，可以在A和C上设定LocPre值，可以传递给B</li>
+<li>在EBGP环境下，LocPre默认不显示，其实是100；在B上可以自由设定LocPre值，并且会生效；但是不能从A和C上传递给B</li>
+</ul>
+</li>
+<li>下一跳属性（next hop） 如果下一跳是0.0.0.0 也就是本地也有该地址宣告，则优先走本地</li>
+<li>AS-Path 可以在B上配置，也可以在A、C上配置，可传递。只比较长度，通常是将自己的AS号多写几个来延长AS-Path<ul>
+<li>IBGP：不生效</li>
+</ul>
+</li>
+<li>起源属性（Origin）e表示EGP传递来的，i表示从BGP内部进来的，?表示重分布进来的。 i &gt; e &gt; ?,通过将i改成e，可以让路由器不优先走这条路由<ul>
+<li>IBGP：in/out 都生效</li>
+<li>EBGP：in/out 都生效</li>
+</ul>
+</li>
+<li>度量值（MED） 越小越好。<ul>
+<li>IBGP：in/out 都生效</li>
+<li>EBGP：in/out 都生效</li>
+</ul>
+</li>
+<li>EBGP的的路由优于IBGP。</li>
+<li>Prefer the path through the closest IGP neighbor. 当上面都一致时，就比较IBP协议的度量值，如ospf的cost值，选择最小的。</li>
+<li>prefer the oldest route from RBGP. 选择更久之前学习到了路由，因为bgp邻居建立时间越久说明越稳定。</li>
+<li>查看BGP的route-id选择id更小的。</li>
+<li>选择地址更小的BGP路由器传过来的路由；</li>
+<li>如果配置了maximum-path [ibgp] number，如果存在多条等价路径就会插入多条路径</li>
+<li>优选更短的cluster-list，因为每经过一个RR，cluster-list都会加上这个RR的route-id</li>
+</ol>
+<h2 id="其他概念"><a href="#其他概念" class="headerlink" title="其他概念"></a>其他概念</h2><p>对等体：邻居<br>对等体组：邻居组，有点像策略模板<br>RR（路由反射器）：解决了IBGP邻居路由传递的问题，因为IBGP防环机制默认不传递IBGP路由条目。利用cluster-list防环<br>联邦：将一个大的AS分成几个小的联邦c</p>
+<h2 id="团体属性：community"><a href="#团体属性：community" class="headerlink" title="团体属性：community"></a>团体属性：community</h2><p>可以被透传的属性。<br>团体属性：<br>是一组具有相同特征的目标地址的集合。团体属性用一组4字节为单位的列表来表示，设备中团体属性表示的格式为aa:nn或者团体号；团体属性用来简化路由策略的应用和降低维护管理的难度，利用团体属性可以使更多个AS中的一组BGP设备共享相同的策略。<br>团体属性分为：<br>1、标准<br>1）私有团体属性 管理员自定义<br>2）公有团体属性 标准固定值<br>2、扩展<br>RT、SOO<br>共有团体属性：<br>1、no-advertise 0xffffff02 携带该属性的路由不会通告给任何BGP邻居<br>2、no-export     0xffffff01 携带该属性的路由不会传递互本AS（指的是主AS）<br>3、loacl-as         0xffffff03 携带该属性的路由不会传递出联邦子AS<br>4、internet         0x00000000  携带该属性的路由可以任意传播不受AS的限制</p>
+<p>私有团体属性：<br>aa:nn<br>aa和nn的取值范围都是（0-65535），管理员可以根据自己的实际情况设置具体数值，通常aa表示自治系统AS编号，nn是管理员自定义的团体属性标识</p>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/CDN/" rel="tag"># CDN</a>
+          
+            <a href="/tags/网络/" rel="tag"># 网络</a>
+          
+            <a href="/tags/BGP/" rel="tag"># BGP</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/11/02/CDN技术栈（一）：直播相关术语/" rel="next" title="CDN技术栈（一）：直播相关术语">
+                <i class="fa fa-chevron-left"></i> CDN技术栈（一）：直播相关术语
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/11/24/利用nc传输文件/" rel="prev" title="利用nc传输文件">
+                利用nc传输文件 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+    <div class="comments" id="comments">
+      <div id="lv-container" data-id="city" data-uid="MTAyMC8zOTQ3NS8xNjAwMg=="></div>
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="https://res.cloudinary.com/dhecqiqai/image/upload/v1535717784/biglee-top/IMG_1167.jpg"
+                alt="Biglee" />
+            
+              <p class="site-author-name" itemprop="name">Biglee</p>
+              <p class="site-description motion-element" itemprop="description">因为相信，所以看见。</p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives">
+                
+                    <span class="site-state-item-count">9</span>
+                    <span class="site-state-item-name">posts</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  <a href="/categories/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">5</span>
+                    <span class="site-state-item-name">categories</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/Tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">11</span>
+                    <span class="site-state-item-name">tags</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+            <div class="links-of-author motion-element">
+              
+                <span class="links-of-author-item">
+                  <a href="https://github.com/hugelee" target="_blank" title="GitHub"><i class="fa fa-fw fa-github"></i>GitHub</a>
+                  
+                </span>
+              
+                <span class="links-of-author-item">
+                  <a href="mailto:lizaibin0304@gmail.com" target="_blank" title="E-Mail"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  
+                </span>
+              
+                <span class="links-of-author-item">
+                  <a href="https://www.zhihu.com/people/li-zai-bin/activities" target="_blank" title="知乎"><i class="fa fa-fw fa-zhihu"></i>知乎</a>
+                  
+                </span>
+              
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#CDN技术栈之网络篇-一-：BGP协议"><span class="nav-number">1.</span> <span class="nav-text">CDN技术栈之网络篇(一)：BGP协议</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#IBGP和EBGP"><span class="nav-number">1.1.</span> <span class="nav-text">IBGP和EBGP</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#BGP状态机"><span class="nav-number">1.2.</span> <span class="nav-text">BGP状态机</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#BGP十三条选路原则"><span class="nav-number">1.3.</span> <span class="nav-text">BGP十三条选路原则</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#其他概念"><span class="nav-number">1.4.</span> <span class="nav-text">其他概念</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#团体属性：community"><span class="nav-number">1.5.</span> <span class="nav-text">团体属性：community</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js">
+</script>
+<span id="busuanzi_container_site_pv">
+    本站总访问量<span id="busuanzi_value_site_pv"></span>次
+</span>
+<div class="copyright">&copy; 2018.8 – <span itemprop="copyrightYear">2021</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-李在彬"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Biglee</span>
+
+  
+
+  
+</div>
+
+
+
+
+  <div class="powered-by">
+  <i class="fa fa-user-md"></i>
+#  <span id="busuanzi_container_site_uv">
+#  本站访客数:<span id="busuanzi_value_site_uv"></span>
+#  </span>
+  </div>
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> v3.7.1</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme – <a class="theme-link" target="_blank" href="https://theme-next.org">NexT.Gemini</a> v6.4.1</div>
+
+
+
+<div class="theme-info">
+  <div class="powered-by"></div>
+  <span class="post-count">博客全站共7.6k字</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+	
+    
+
+    
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/canvas-nest/canvas-nest.min.js"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=6.4.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=6.4.1"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=6.4.1"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=6.4.1"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=6.4.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=6.4.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=6.4.1"></script>
+
+
+
+  
+
+
+
+  
+    <script type="text/javascript">
+      window.livereOptions = {
+        refer: '2018/12/15/CDN技术栈之网络篇(一)：BGP协议/'
+      };
+      (function(d, s) {
+        var j, e = d.getElementsByTagName(s)[0];
+        if (typeof LivereTower === 'function') { return; }
+        j = d.createElement(s);
+        j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+        j.async = true;
+        e.parentNode.insertBefore(j, e);
+      })(document, 'script');
+    </script>
+  
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+  <script type="text/javascript" src="//cdn.bootcss.com/canvas-nest.js/1.0.0/canvas-nest.min.js"></script>
+  
+</body>
+</html>
